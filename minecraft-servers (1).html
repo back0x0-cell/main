@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServerCraft — ТОП Серверов 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg0: #02050a;
+  --bg1: #050d0a;
+  --surface: rgba(255,255,255,0.03);
+  --surface2: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --green: #00ff88;
+  --green2: #00e57a;
+  --green-dim: rgba(0,255,136,0.15);
+  --cyan: #00f5ff;
+  --gold: #ffd700;
+  --text: #e8f5e9;
+  --muted: rgba(232,245,233,0.4);
+  --muted2: rgba(232,245,233,0.25);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,136,0.5);
+  transform: translate(-50%,-50%);
+}
+.cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(0,255,136,0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: width 0.3s, height 0.3s, border-color 0.3s;
+}
+.cursor-ring.big { width: 52px; height: 52px; border-color: rgba(0,255,136,0.8); }
+
+/* PARTICLE CANVAS */
+#canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* BACKGROUND */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,255,136,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0,245,255,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 0% 100%, rgba(0,255,136,0.03) 0%, transparent 50%),
+    var(--bg0);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* LAYOUT */
+.wrap { position: relative; z-index: 1; }
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  background: rgba(2,5,10,0.7);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: var(--green);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0,255,136,0.6), 0 0 40px rgba(0,255,136,0.2);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 1px;
+  background: var(--green);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.nav-links a:hover { color: var(--green); }
+.nav-links a:hover::after { transform: scaleX(1); }
+
+.nav-badge {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: var(--bg0);
+  background: var(--green);
+  padding: 6px 16px;
+  letter-spacing: 2px;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Terrain silhouette */
+.terrain {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 220px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.terrain svg { width: 100%; height: 100%; }
+
+/* Floating blocks */
+.float-block {
+  position: absolute;
+  width: 24px; height: 24px;
+  border: 1px solid rgba(0,255,136,0.2);
+  background: rgba(0,255,136,0.03);
+  animation: floatBlock linear infinite;
+  pointer-events: none;
+}
+
+@keyframes floatBlock {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { transform: translateY(-20px) rotate(360deg); opacity: 0; }
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  animation: fadeUp 1s ease both 0.2s;
+}
+
+.eyebrow-line {
+  height: 1px;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, var(--green));
+}
+
+.eyebrow-line.r {
+  background: linear-gradient(270deg, transparent, var(--green));
+}
+
+.eyebrow-text {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: clamp(48px, 9vw, 120px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  animation: fadeUp 1s ease both 0.35s;
+}
+
+.h1-main {
+  display: block;
+  color: var(--text);
+}
+
+.h1-accent {
+  display: block;
+  background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 60%, var(--green) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+  filter: drop-shadow(0 0 30px rgba(0,255,136,0.4));
+}
+
+@keyframes shimmer { to { background-position: 200% center; } }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.8;
+  margin: 28px auto 48px;
+  font-weight: 300;
+  animation: fadeUp 1s ease both 0.5s;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 1s ease both 0.65s;
+}
+
+.btn-primary {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--bg0);
+  background: var(--green);
+  border: none;
+  padding: 14px 36px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+  transform: translateX(-100%) skewX(-20deg);
+  transition: transform 0.5s;
+}
+
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,255,136,0.4); }
+.btn-primary:hover::before { transform: translateX(200%) skewX(-20deg); }
+
+.btn-ghost {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border2);
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-ghost:hover {
+  color: var(--green);
+  border-color: rgba(0,255,136,0.4);
+  background: var(--green-dim);
+}
+
+/* Stats strip */
+.stats-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 80px;
+  border: 1px solid var(--border);
+  animation: fadeUp 1s ease both 0.8s;
+  overflow: hidden;
+}
+
+.stat-item {
+  flex: 1;
+  padding: 24px 32px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.stat-item:last-child { border-right: none; }
+.stat-item:hover { background: var(--surface); }
+
+.stat-num {
+  font-family: 'VT323', monospace;
+  font-size: 36px;
+  color: var(--green);
+  display: block;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0,255,136,0.4);
+}
+
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted2);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SECTION HEADER */
+.section-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.section-tag {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: var(--green);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: block;
+  opacity: 0.8;
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.section-title .hl {
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* FILTERS */
+.filters-wrap {
+  padding: 0 48px 56px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ftag {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  letter-spacing: 2px;
+  padding: 8px 22px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.ftag:hover {
+  border-color: rgba(0,255,136,0.4);
+  color: var(--green);
+  background: rgba(0,255,136,0.05);
+}
+
+.ftag.on {
+  background: rgba(0,255,136,0.15);
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 20px rgba(0,255,136,0.15), inset 0 0 15px rgba(0,255,136,0.05);
+}
+
+/* SERVERS SECTION */
+.servers-section {
+  padding: 100px 48px 120px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* SERVER CARDS */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), opacity 0.5s ease, background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+
+.card.visible { opacity: 1; transform: translateY(0); }
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--card-color, var(--green)) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 28px 28px 0;
+  border-color: transparent var(--card-color, var(--green)) transparent transparent;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow:
+    0 0 0 1px rgba(0,255,136,0.08),
+    0 24px 80px rgba(0,0,0,0.6),
+    0 0 60px rgba(0,255,136,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transform: translateY(-6px);
+  z-index: 2;
+}
+
+.card:hover::before, .card:hover::after { opacity: 1; }
+
+.card-glow {
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at center, var(--card-color, var(--green)) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(40px);
+}
+
+.card:hover .card-glow { opacity: 0.04; }
+
+/* Rank */
+.rank-badge {
+  position: absolute;
+  top: 24px; right: 24px;
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border: 1px solid;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+.card:hover .rank-badge { opacity: 1; }
+.r1 { color: #ffd700; border-color: rgba(255,215,0,0.4); }
+.r2 { color: #c0c0c0; border-color: rgba(192,192,192,0.4); }
+.r3 { color: #cd7f32; border-color: rgba(205,127,50,0.4); }
+.rn { color: var(--muted2); border-color: rgba(255,255,255,0.1); }
+
+/* Icon */
+.server-header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.icon-wrap {
+  width: 64px; height: 64px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border2);
+  position: relative;
+  transition: all 0.4s;
+}
+
+.card:hover .icon-wrap {
+  border-color: var(--card-color, var(--green));
+  box-shadow: 0 0 20px rgba(0,0,0,0.4), 0 0 0 1px var(--card-color, var(--green)), inset 0 0 20px rgba(0,255,136,0.05);
+}
+
+.icon-wrap::before, .icon-wrap::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--card-color, var(--green));
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.icon-wrap::before { top: -1px; left: -1px; }
+.icon-wrap::after { bottom: -1px; right: -1px; }
+.card:hover .icon-wrap::before, .card:hover .icon-wrap::after { opacity: 1; }
+
+.server-meta { flex: 1; min-width: 0; }
+
+.server-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.server-ip {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: var(--card-color, var(--green));
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.server-desc {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--muted);
+  margin-bottom: 22px;
+  font-weight: 300;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid;
+  transition: all 0.2s;
+}
+
+/* Popularity bar */
+.pop-bar-wrap { margin-bottom: 20px; }
+
+.pop-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.pop-bar-track {
+  height: 2px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.pop-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--card-color, var(--green)), rgba(0,245,255,0.6));
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.23,1,0.32,1);
+  box-shadow: 0 0 8px var(--card-color, var(--green));
+}
+
+.card.visible .pop-bar-fill { width: var(--pop); }
+
+/* Footer row */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+}
+
+.online-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(0,255,136,0.6);
+  animation: pulse-ring 2s ease infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); }
+}
+
+.online-label {
+  font-size: 11px;
+  color: var(--muted2);
+  letter-spacing: 0.05em;
+}
+
+.online-count {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--green);
+}
+
+.copy-ip {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--card-color, var(--green));
+  background: transparent;
+  border: 1px solid var(--border2);
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.25s;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  white-space: nowrap;
+}
+
+.copy-ip:hover {
+  background: rgba(0,255,136,0.1);
+  border-color: var(--card-color, var(--green));
+  box-shadow: 0 0 15px rgba(0,255,136,0.15);
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(2,5,10,0.97);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  letter-spacing: 3px;
+  padding: 14px 32px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.23,1,0.32,1);
+  box-shadow: 0 0 30px rgba(0,255,136,0.25), inset 0 0 20px rgba(0,255,136,0.05);
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+}
+
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* DIVIDER */
+.fancy-divider {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.fd-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.fd-icon {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: var(--muted2);
+  letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px;
+}
+
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-logo {
+  font-family: 'VT323', monospace;
+  font-size: 32px;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(0,255,136,0.4);
+  letter-spacing: 3px;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--muted2);
+  letter-spacing: 0.08em;
+}
+
+.footer-copy span { color: var(--green); }
+
+/* REVEAL */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.7s ease;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  nav { padding: 16px 24px; }
+  .nav-links, .nav-badge { display: none; }
+  .hero { padding: 100px 20px 60px; }
+  .servers-section, .filters-wrap { padding-left: 20px; padding-right: 20px; }
+  .grid { grid-template-columns: 1fr; gap: 2px; }
+  .stats-strip { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .stat-item:last-child { border-bottom: none; }
+  footer { padding: 32px 24px; }
+  .cursor, .cursor-ring { display: none; }
+}
+
+/* TAG COLOURS */
+.t-pvp { color: #ff6b6b; border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.06); }
+.t-sur { color: #69db7c; border-color: rgba(105,219,124,0.3); background: rgba(105,219,124,0.06); }
+.t-sky { color: #4dabf7; border-color: rgba(77,171,247,0.3); background: rgba(77,171,247,0.06); }
+.t-pri { color: #ffd43b; border-color: rgba(255,212,59,0.3); background: rgba(255,212,59,0.06); }
+.t-smp { color: #a9e34b; border-color: rgba(169,227,75,0.3); background: rgba(169,227,75,0.06); }
+.t-min { color: #e599f7; border-color: rgba(229,153,247,0.3); background: rgba(229,153,247,0.06); }
+.t-rpg { color: #ffa94d; border-color: rgba(255,169,77,0.3); background: rgba(255,169,77,0.06); }
+.t-bed { color: #a9b7c6; border-color: rgba(169,183,198,0.3); background: rgba(169,183,198,0.06); }
+.t-ear { color: #b2f2bb; border-color: rgba(178,242,187,0.3); background: rgba(178,242,187,0.06); }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<canvas id="canvas"></canvas>
+<div class="bg-gradient"></div>
+
+<div class="wrap">
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">⛏ SERVERCRAFT</a>
+  <ul class="nav-links">
+    <li><a href="#">Серверы</a></li>
+    <li><a href="#">Рейтинг</a></li>
+    <li><a href="#">Гайды</a></li>
+    <li><a href="#">Новости</a></li>
+  </ul>
+  <span class="nav-badge">2025</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="float-block" style="left:8%;bottom:-30px;animation-duration:18s;animation-delay:0s;width:16px;height:16px;"></div>
+  <div class="float-block" style="left:20%;bottom:-30px;animation-duration:22s;animation-delay:4s;"></div>
+  <div class="float-block" style="left:78%;bottom:-30px;animation-duration:16s;animation-delay:2s;width:18px;height:18px;"></div>
+  <div class="float-block" style="left:90%;bottom:-30px;animation-duration:20s;animation-delay:7s;width:12px;height:12px;"></div>
+  <div class="float-block" style="left:55%;bottom:-30px;animation-duration:25s;animation-delay:1s;width:20px;height:20px;"></div>
+  <div class="float-block" style="left:38%;bottom:-30px;animation-duration:19s;animation-delay:9s;width:14px;height:14px;"></div>
+
+  <div class="hero-eyebrow">
+    <span class="eyebrow-line"></span>
+    <span class="eyebrow-text">⚔ ЛУЧШИЕ СЕРВЕРЫ МИРА ⚔</span>
+    <span class="eyebrow-line r"></span>
+  </div>
+
+  <h1>
+    <span class="h1-main">MINECRAFT</span>
+    <span class="h1-accent">СЕРВЕРЫ</span>
+  </h1>
+
+  <p class="hero-sub">
+    Отобранные вручную серверы с активными сообществами, уникальными режимами и незабываемым игровым опытом — всё в одном месте.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#servers" class="btn-primary">⚡ СМОТРЕТЬ ТОП</a>
+    <a href="#" class="btn-ghost">📋 Как добавить сервер</a>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-num" data-count="10">0</span>
+      <span class="stat-lbl">Серверов</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" data-count="200000">0</span>
+      <span class="stat-lbl">Игроков онлайн</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">1.21+</span>
+      <span class="stat-lbl">Версия Java</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" data-count="47">0</span>
+      <span class="stat-lbl">Режимов игры</span>
+    </div>
+  </div>
+
+  <div class="terrain">
+    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(0,255,136,0.12)"/>
+          <stop offset="100%" stop-color="rgba(0,255,136,0.02)"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,120 L0,220 L1440,220 L1440,80
+        L1380,80 L1380,60 L1320,60 L1320,40 L1260,40 L1260,60 L1200,60 L1200,80
+        L1140,80 L1140,100 L1080,100 L1080,60 L1020,60 L1020,40 L960,40 L960,60
+        L900,60 L900,80 L840,80 L840,60 L780,60 L780,40 L720,40 L720,20 L660,20
+        L660,40 L600,40 L600,60 L540,60 L540,80 L480,80 L480,60 L420,60 L420,40
+        L360,40 L360,60 L300,60 L300,80 L240,80 L240,100 L180,100 L180,80 L120,80
+        L120,100 L60,100 L60,120 Z"
+        fill="url(#tg)" stroke="rgba(0,255,136,0.15)" stroke-width="1"/>
+      <rect x="720" y="16" width="48" height="6" fill="rgba(0,255,136,0.3)"/>
+      <rect x="1020" y="36" width="48" height="6" fill="rgba(0,255,136,0.25)"/>
+      <rect x="360" y="36" width="48" height="6" fill="rgba(0,255,136,0.2)"/>
+    </svg>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters-wrap reveal" id="servers">
+  <div class="section-header" style="margin-top:20px;">
+    <span class="section-tag">▶ КАТАЛОГ</span>
+    <h2 class="section-title">ТОП <span class="hl">10</span> СЕРВЕРОВ</h2>
+  </div>
+  <div class="filter-row">
+    <button class="ftag on" onclick="doFilter('all',this)">ВСЕ</button>
+    <button class="ftag" onclick="doFilter('pvp',this)">⚔ PVP</button>
+    <button class="ftag" onclick="doFilter('survival',this)">🌲 SURVIVAL</button>
+    <button class="ftag" onclick="doFilter('skyblock',this)">🌤 SKYBLOCK</button>
+    <button class="ftag" onclick="doFilter('prison',this)">⛓ PRISON</button>
+    <button class="ftag" onclick="doFilter('minigames',this)">🎮 MINIGAMES</button>
+    <button class="ftag" onclick="doFilter('smp',this)">👥 SMP</button>
+    <button class="ftag" onclick="doFilter('rpg',this)">🗡 RPG</button>
+  </div>
+</div>
+
+<!-- GRID -->
+<div class="servers-section">
+  <div class="grid" id="grid">
+
+<!-- 1. HYPIXEL -->
+<div class="card" data-tags="pvp minigames skyblock" style="--card-color:#ffd700">
+  <div class="card-glow"></div>
+  <span class="rank-badge r1">#01</span>
+  <div class="server-header">
+    <div class="icon-wrap">🏰</div>
+    <div class="server-meta">
+      <div class="server-name">HYPIXEL</div>
+      <div class="server-ip">mc.hypixel.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Крупнейший сервер в мире. BedWars, SkyWars, Murder Mystery, Mega Walls и легендарный кастомный SkyBlock. Более 100 000 игроков онлайн в пиковые часы — это не сервер, это целая вселенная.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>100%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:100%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-min">Minigames</span>
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-sky">Skyblock</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">100K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('mc.hypixel.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 2. PIKANETWORK -->
+<div class="card" data-tags="pvp skyblock minigames survival prison smp" style="--card-color:#00f5ff">
+  <div class="card-glow"></div>
+  <span class="rank-badge r2">#02</span>
+  <div class="server-header">
+    <div class="icon-wrap">⚡</div>
+    <div class="server-meta">
+      <div class="server-name">PIKANETWORK</div>
+      <div class="server-ip">topx.pika.host</div>
+    </div>
+  </div>
+  <p class="server-desc">Огромная кросс-платформенная сеть с поддержкой Java и Bedrock. BedWars, SkyBlock, Factions, KitPvP и десятки других режимов без лагов и задержек.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>87%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:87%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-sky">Skyblock</span>
+    <span class="tag t-min">Minigames</span>
+    <span class="tag t-bed">Bedrock</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">20K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('topx.pika.host')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 3. PURPLE PRISON -->
+<div class="card" data-tags="prison pvp" style="--card-color:#bf5fff">
+  <div class="card-glow"></div>
+  <span class="rank-badge r3">#03</span>
+  <div class="server-header">
+    <div class="icon-wrap">⛓️</div>
+    <div class="server-meta">
+      <div class="server-name">PURPLE PRISON</div>
+      <div class="server-ip">purpleprison.org</div>
+    </div>
+  </div>
+  <p class="server-desc">Легенда среди Prison-серверов. Глубокая система рангов, кастомные шахты, жёсткое PvP и живая экономика. Лучший Prison-опыт за последние годы.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>76%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:76%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pri">Prison</span>
+    <span class="tag t-pvp">PvP</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">5K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('purpleprison.org')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 4. JARTEXNETWORK -->
+<div class="card" data-tags="pvp skyblock minigames survival prison smp" style="--card-color:#ff8c00">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#04</span>
+  <div class="server-header">
+    <div class="icon-wrap">🌐</div>
+    <div class="server-meta">
+      <div class="server-name">JARTEXNETWORK</div>
+      <div class="server-ip">topt.jartex.fun</div>
+    </div>
+  </div>
+  <p class="server-desc">Профессиональная сеть с Java и Bedrock. BedWars, SkyWars, Factions, KitPvP, Prison, Survival — дружелюбное сообщество и регулярные обновления контента.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>72%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:72%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-min">Minigames</span>
+    <span class="tag t-bed">Bedrock</span>
+    <span class="tag t-pri">Prison</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">15K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('topt.jartex.fun')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 5. LIFESTEAL SMP -->
+<div class="card" data-tags="pvp smp survival" style="--card-color:#ff4444">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#05</span>
+  <div class="server-header">
+    <div class="icon-wrap">❤️</div>
+    <div class="server-meta">
+      <div class="server-name">LIFESTEAL SMP</div>
+      <div class="server-ip">play.lifesteal.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Убивай врагов — кради их сердца и увеличивай максимальное здоровье. Умри — потеряй всё. Альянсы, предательства и адреналиновое выживание на пределе.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>68%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:68%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-smp">SMP</span>
+    <span class="tag t-sur">Survival</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">8K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('play.lifesteal.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 6. BENDERSMC -->
+<div class="card" data-tags="pvp smp rpg" style="--card-color:#4dabf7">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#06</span>
+  <div class="server-header">
+    <div class="icon-wrap">🌊</div>
+    <div class="server-meta">
+      <div class="server-name">BENDERSMC</div>
+      <div class="server-ip">play.bendersmc.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Управляй стихиями — водой, землёй, огнём или воздухом как в Аватаре. Уникальные PvP-поединки с магией стихий. Самый атмосферный RPG-сервер.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>61%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:61%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-rpg">RPG</span>
+    <span class="tag t-smp">SMP</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">3K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('play.bendersmc.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 7. DIPLOMATICAMC -->
+<div class="card" data-tags="survival smp rpg" style="--card-color:#a9e34b">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#07</span>
+  <div class="server-header">
+    <div class="icon-wrap">🌍</div>
+    <div class="server-meta">
+      <div class="server-name">DIPLOMATICAMC</div>
+      <div class="server-ip">play.diplomatica.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Карта Земли в масштабе 1:450. Строй города, создавай нации и симулируй реальную геополитику. Настоящая стратегия для любителей истории и дипломатии.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>55%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:55%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-ear">Earth</span>
+    <span class="tag t-smp">SMP</span>
+    <span class="tag t-rpg">RPG</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">2K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('play.diplomatica.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 8. ONEBLOCKY -->
+<div class="card" data-tags="skyblock survival smp" style="--card-color:#69db7c">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#08</span>
+  <div class="server-header">
+    <div class="icon-wrap">🟩</div>
+    <div class="server-meta">
+      <div class="server-name">ONEBLOCKY</div>
+      <div class="server-ip">play.oneblocky.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Лучший OneBlock SkyBlock: начни с одного блока и построй целый остров. Квесты, PvP-арены, кастомные предметы. Без Pay-to-Win — только честный прогресс.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>58%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:58%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-sky">Skyblock</span>
+    <span class="tag t-sur">Survival</span>
+    <span class="tag t-bed">Bedrock</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">4K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('play.oneblocky.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 9. MINEHEART -->
+<div class="card" data-tags="pvp smp survival" style="--card-color:#f783ac">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#09</span>
+  <div class="server-header">
+    <div class="icon-wrap">💎</div>
+    <div class="server-meta">
+      <div class="server-name">MINEHEART</div>
+      <div class="server-ip">org.mineheart.net</div>
+    </div>
+  </div>
+  <p class="server-desc">Lifesteal и Earth SMP с поддержкой Java и Bedrock. Гильдии, аукционный дом, Discord-маркетплейс. Стратегические альянсы и жёсткий PvP на карте Земли.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>52%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:52%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-pvp">PvP</span>
+    <span class="tag t-smp">SMP</span>
+    <span class="tag t-ear">Earth</span>
+    <span class="tag t-bed">Bedrock</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">3K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('org.mineheart.net')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+<!-- 10. BERRYSMP -->
+<div class="card" data-tags="survival smp" style="--card-color:#ff6b6b">
+  <div class="card-glow"></div>
+  <span class="rank-badge rn">#10</span>
+  <div class="server-header">
+    <div class="icon-wrap">🍓</div>
+    <div class="server-meta">
+      <div class="server-name">BERRYSMP</div>
+      <div class="server-ip">play.berrysmp.com</div>
+    </div>
+  </div>
+  <p class="server-desc">Уютный кооперативный SMP без токсичности. Клейм земли, совместные мегапроекты и сезонные ивенты. Идеален для новичков, стримеров и тех, кто хочет отдохнуть.</p>
+  <div class="pop-bar-wrap">
+    <div class="pop-bar-label"><span>ПОПУЛЯРНОСТЬ</span><span>48%</span></div>
+    <div class="pop-bar-track"><div class="pop-bar-fill" style="--pop:48%"></div></div>
+  </div>
+  <div class="tags">
+    <span class="tag t-sur">Survival</span>
+    <span class="tag t-smp">SMP</span>
+  </div>
+  <div class="card-footer">
+    <div class="online-info">
+      <span class="pulse-dot"></span>
+      <span class="online-label">Онлайн</span>
+      <span class="online-count">2K+</span>
+    </div>
+    <button class="copy-ip" onclick="copyIP('play.berrysmp.com')">[ КОПИРОВАТЬ ]</button>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<div class="fancy-divider reveal">
+  <div class="fd-line"></div>
+  <span class="fd-icon">⛏ &nbsp; SERVERCRAFT &nbsp; ⛏</span>
+  <div class="fd-line"></div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">⛏ SERVERCRAFT</div>
+    <p class="footer-copy">Данные актуальны на <span>2025</span> год</p>
+    <p class="footer-copy">Сделано с <span>❤</span> для Minecraft-сообщества</p>
+  </div>
+</footer>
+
+</div>
+
+<div class="toast" id="toast">✓ IP СКОПИРОВАН</div>
+
+<script>
+/* CURSOR */
+const cur = document.getElementById('cur');
+const ring = document.getElementById('ring');
+let mx=window.innerWidth/2, my=window.innerHeight/2;
+let rx=mx, ry=my;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top = my + 'px';
+});
+
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('button, a, .card').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('big'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('big'));
+});
+
+/* PARTICLES */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const particles = Array.from({length: 70}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  vx: (Math.random() - 0.5) * 0.3,
+  vy: (Math.random() - 0.5) * 0.3,
+  r: Math.random() * 1.5 + 0.5,
+  a: Math.random() * 0.6 + 0.1,
+  color: Math.random() > 0.7 ? '0,245,255' : '0,255,136'
+}));
+
+function animParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${p.color},${p.a})`;
+    ctx.fill();
+
+    particles.forEach(q => {
+      const dx = p.x - q.x, dy = p.y - q.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120 && dist > 0) {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(q.x, q.y);
+        ctx.strokeStyle = `rgba(0,255,136,${0.04 * (1 - dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    });
+  });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+/* SCROLL REVEAL */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      if (e.target.classList.contains('card')) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      } else {
+        e.target.classList.add('in');
+      }
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.card').forEach((el, i) => {
+  el.style.transitionDelay = `${i * 0.06}s`;
+  io.observe(el);
+});
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* COUNTER */
+document.querySelectorAll('[data-count]').forEach(el => {
+  const target = parseInt(el.dataset.count);
+  const dur = 1800;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = Math.floor(eased * target);
+    el.textContent = target >= 10000 ? val.toLocaleString('ru') : val;
+    if (t < 1) requestAnimationFrame(tick);
+    else el.textContent = target >= 10000 ? target.toLocaleString('ru') : target;
+  }
+  setTimeout(() => requestAnimationFrame(tick), 600);
+});
+
+/* FILTER */
+function doFilter(tag, btn) {
+  document.querySelectorAll('.ftag').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  let delay = 0;
+  document.querySelectorAll('.card').forEach(card => {
+    const tags = card.dataset.tags || '';
+    const show = tag === 'all' || tags.includes(tag);
+    if (show) {
+      card.style.display = '';
+      card.style.transitionDelay = `${delay * 0.05}s`;
+      card.classList.remove('visible');
+      setTimeout(() => card.classList.add('visible'), 10 + delay * 50);
+      delay++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+/* COPY IP */
+function copyIP(ip) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = ip;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  };
+  (navigator.clipboard ? navigator.clipboard.writeText(ip).catch(fallback) : Promise.reject()).catch(fallback);
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + ip + ' СКОПИРОВАН';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* SMOOTH SCROLL */
+document.querySelector('a[href="#servers"]').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('servers').scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
